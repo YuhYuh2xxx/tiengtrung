@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .wrap {
+        padding: 1rem 0 2rem;
+      }
+      .tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .tab {
+        padding: 7px 18px;
+        border-radius: 20px;
+        border: 1.5px solid var(--color-border-tertiary);
+        background: transparent;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .tab.active {
+        border-color: transparent;
+        color: #fff;
+      }
+      .tab.t0.active {
+        background: #185fa5;
+      }
+      .tab.t1.active {
+        background: #0f6e56;
+      }
+      .tab.t2.active {
+        background: #854f0b;
+      }
+      .tab.t3.active {
+        background: #534ab7;
+      }
+      .section {
+        display: none;
+      }
+      .section.active {
+        display: block;
+      }
+      .group-label {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        color: var(--color-text-secondary);
+        margin: 1.25rem 0 0.5rem;
+        text-transform: uppercase;
+      }
+      .grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      }
+      .card {
+        border-radius: 12px;
+        padding: 10px 10px 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition:
+          transform 0.15s,
+          border-color 0.15s;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        position: relative;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+      }
+      .card.selected {
+        border-color: #fff;
+        outline: 2px solid #185fa5;
+        outline-offset: 1px;
+      }
+      .zhuyin {
+        font-size: 26px;
+        line-height: 1;
+        font-family: serif;
+        margin-bottom: 2px;
+      }
+      .pinyin {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .type-badge {
+        font-size: 10px;
+        font-weight: 500;
+        opacity: 0.75;
+        margin-top: 1px;
+      }
+      .panel {
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: none;
+        border: 1.5px solid transparent;
+      }
+      .panel.show {
+        display: block;
+      }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .panel-zh {
+        font-size: 40px;
+        font-family: serif;
+        line-height: 1;
+      }
+      .panel-py {
+        font-size: 22px;
+        font-weight: 500;
+      }
+      .panel-rows {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .panel-row {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .panel-row-label {
+        font-size: 11px;
+        font-weight: 500;
+        opacity: 0.65;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .panel-row-val {
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .tone-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        margin-bottom: 1.5rem;
+      }
+      .tone-card {
+        border-radius: 14px;
+        padding: 14px 10px;
+        text-align: center;
+      }
+      .tone-num {
+        font-size: 28px;
+        font-weight: 500;
+        line-height: 1;
+        margin-bottom: 4px;
+      }
+      .tone-diacritic {
+        font-size: 17px;
+        margin-bottom: 4px;
+        font-family: serif;
+      }
+      .tone-zh {
+        font-size: 14px;
+        font-family: serif;
+        margin-bottom: 6px;
+      }
+      .tone-desc {
+        font-size: 11px;
+        line-height: 1.5;
+        opacity: 0.8;
+      }
+      .compare-wrap {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--color-border-tertiary);
+      }
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .compare-table th {
+        padding: 10px 14px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--color-text-secondary);
+        background: var(--color-background-secondary);
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+      }
+      .compare-table td {
+        padding: 10px 14px;
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+        vertical-align: middle;
+      }
+      .compare-table tr:last-child td {
+        border-bottom: none;
+      }
+      .zh-big {
+        font-size: 18px;
+        font-family: serif;
+        color: #185fa5;
+      }
+      .ex-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 12px;
+      }
+      .ex-table th {
+        padding: 8px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--color-text-secondary);
+        background: var(--color-background-secondary);
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+      }
+      .ex-table td {
+        padding: 9px 12px;
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+      }
+      .ex-table tr:last-child td {
+        border-bottom: none;
+      }
+      .han {
+        font-size: 18px;
+      }
+    </style>
+    <title>Document</title>
+  </head>
+  <body>
+    <h2 class="sr-only">
+      Bảng tra cứu Pinyin và Zhuyin đầy đủ, có màu sắc theo nhóm âm
+    </h2>
+
+    <div class="wrap">
+      <div class="tabs">
+        <button class="tab t0 active" onclick="showTab(0)">Phụ âm đầu</button>
+        <button class="tab t1" onclick="showTab(1)">Vần / Nguyên âm</button>
+        <button class="tab t2" onclick="showTab(2)">Thanh điệu</button>
+        <button class="tab t3" onclick="showTab(3)">So sánh</button>
+      </div>
+
+      <div id="panel" class="panel"></div>
+
+      <div id="sec0" class="section active"></div>
+      <div id="sec1" class="section"></div>
+
+      <div id="sec2" class="section">
+        <div class="tone-grid">
+          <div class="tone-card" style="background: #e6f1fb">
+            <div class="tone-num" style="color: #185fa5">1</div>
+            <div class="tone-diacritic" style="color: #185fa5">ā (ˉ)</div>
+            <div class="tone-zh" style="color: #0c447c">Zhuyin: không dấu</div>
+            <div class="tone-desc" style="color: #185fa5">
+              Bằng phẳng, cao đều. Kéo dài như nốt nhạc.
+            </div>
+          </div>
+          <div class="tone-card" style="background: #eaf3de">
+            <div class="tone-num" style="color: #3b6d11">2</div>
+            <div class="tone-diacritic" style="color: #3b6d11">á (ˊ)</div>
+            <div class="tone-zh" style="color: #27500a">Zhuyin: ˊ (sau)</div>
+            <div class="tone-desc" style="color: #3b6d11">
+              Lên cao. Hỏi ngắn "hả?"
+            </div>
+          </div>
+          <div class="tone-card" style="background: #faeeda">
+            <div class="tone-num" style="color: #854f0b">3</div>
+            <div class="tone-diacritic" style="color: #854f0b">ǎ (ˇ)</div>
+            <div class="tone-zh" style="color: #633806">Zhuyin: ˇ (sau)</div>
+            <div class="tone-desc" style="color: #854f0b">
+              Xuống rồi lên. Như "ừ... hả?"
+            </div>
+          </div>
+          <div class="tone-card" style="background: #fcebeb">
+            <div class="tone-num" style="color: #a32d2d">4</div>
+            <div class="tone-diacritic" style="color: #a32d2d">à (ˋ)</div>
+            <div class="tone-zh" style="color: #791f1f">Zhuyin: ˋ (sau)</div>
+            <div class="tone-desc" style="color: #a32d2d">
+              Xuống mạnh, dứt khoát.
+            </div>
+          </div>
+          <div class="tone-card" style="background: #eeedfe">
+            <div class="tone-num" style="color: #534ab7">5</div>
+            <div class="tone-diacritic" style="color: #534ab7">· (nhẹ)</div>
+            <div class="tone-zh" style="color: #3c3489">Zhuyin: · (trước)</div>
+            <div class="tone-desc" style="color: #534ab7">
+              Thanh nhẹ, ngắn, không nhấn.
+            </div>
+          </div>
+        </div>
+        <div class="compare-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Thanh</th>
+                <th>Pinyin</th>
+                <th>Zhuyin</th>
+                <th>Ví dụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color: #185fa5; font-weight: 500">Thanh 1</td>
+                <td>ā ē ī ō ū ǖ</td>
+                <td class="zh-big">（không dấu）</td>
+                <td>māma 妈妈 — mẹ</td>
+              </tr>
+              <tr>
+                <td style="color: #3b6d11; font-weight: 500">Thanh 2</td>
+                <td>á é í ó ú ǘ</td>
+                <td class="zh-big">ˊ</td>
+                <td>máng 忙 — bận</td>
+              </tr>
+              <tr>
+                <td style="color: #854f0b; font-weight: 500">Thanh 3</td>
+                <td>ǎ ě ǐ ǒ ǔ ǚ</td>
+                <td class="zh-big">ˇ</td>
+                <td>wǒ 我 — tôi</td>
+              </tr>
+              <tr>
+                <td style="color: #a32d2d; font-weight: 500">Thanh 4</td>
+                <td>à è ì ò ù ǜ</td>
+                <td class="zh-big">ˋ</td>
+                <td>shì 是 — là</td>
+              </tr>
+              <tr>
+                <td style="color: #534ab7; font-weight: 500">Thanh nhẹ</td>
+                <td>không dấu</td>
+                <td class="zh-big">·</td>
+                <td>de 的 — của</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="sec3" class="section">
+        <div class="compare-wrap" style="margin-bottom: 1rem">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Tiêu chí</th>
+                <th>Pinyin 拼音</th>
+                <th>Zhuyin ㄅㄆㄇㄈ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nguồn gốc</td>
+                <td>1958, Trung Quốc đại lục</td>
+                <td>1913, Trung Hoa Dân Quốc</td>
+              </tr>
+              <tr>
+                <td>Ký tự</td>
+                <td>26 chữ La-tinh + dấu</td>
+                <td>37 ký hiệu độc lập</td>
+              </tr>
+              <tr>
+                <td>Phổ biến ở</td>
+                <td>TQ, Singapore, quốc tế</td>
+                <td>Đài Loan</td>
+              </tr>
+              <tr>
+                <td>Dành cho</td>
+                <td>Người nước ngoài học tiếng Trung</td>
+                <td>Chuẩn xác phát âm bản địa</td>
+              </tr>
+              <tr>
+                <td>Nhập liệu</td>
+                <td>Bàn phím QWERTY thường</td>
+                <td>Bàn phím Zhuyin riêng</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="compare-wrap">
+          <table class="ex-table">
+            <thead>
+              <tr>
+                <th>Chữ Hán</th>
+                <th>Pinyin</th>
+                <th>Zhuyin</th>
+                <th>Nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="han">你好</td>
+                <td>nǐ hǎo</td>
+                <td class="zh-big">ㄋㄧˇ ㄏㄠˇ</td>
+                <td>Xin chào</td>
+              </tr>
+              <tr>
+                <td class="han">谢谢</td>
+                <td>xiè xie</td>
+                <td class="zh-big">ㄒㄧㄝˋ ˙ㄒㄧㄝ</td>
+                <td>Cảm ơn</td>
+              </tr>
+              <tr>
+                <td class="han">中国</td>
+                <td>zhōng guó</td>
+                <td class="zh-big">ㄓㄨㄥ ㄍㄨㄛˊ</td>
+                <td>Trung Quốc</td>
+              </tr>
+              <tr>
+                <td class="han">我爱你</td>
+                <td>wǒ ài nǐ</td>
+                <td class="zh-big">ㄨㄛˇ ㄞˋ ㄋㄧˇ</td>
+                <td>Tôi yêu bạn</td>
+              </tr>
+              <tr>
+                <td class="han">汉语</td>
+                <td>hàn yǔ</td>
+                <td class="zh-big">ㄏㄢˋ ㄩˇ</td>
+                <td>Tiếng Hán</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const GROUPS = {
+        initials: [
+          {
+            label: "Âm môi (Bilabial)",
+            color: "#E6F1FB",
+            textColor: "#0C447C",
+            accent: "#185FA5",
+            items: [
+              {
+                p: "b",
+                z: "ㄅ",
+                viet: "b (ba)",
+                note: "Không bật hơi",
+                type: "Bilabial",
+                ex: "bā 八 — tám",
+              },
+              {
+                p: "p",
+                z: "ㄆ",
+                viet: "ph (phở)",
+                note: "Bật hơi mạnh",
+                type: "Bilabial",
+                ex: "pá 爬 — bò",
+              },
+              {
+                p: "m",
+                z: "ㄇ",
+                viet: "m (ma)",
+                note: "Giống tiếng Việt",
+                type: "Bilabial",
+                ex: "māma 妈妈 — mẹ",
+              },
+              {
+                p: "f",
+                z: "ㄈ",
+                viet: "ph (phố)",
+                note: "Môi-răng",
+                type: "Labiodental",
+                ex: "fēi 飞 — bay",
+              },
+            ],
+          },
+          {
+            label: "Âm đầu lưỡi (Alveolar)",
+            color: "#EAF3DE",
+            textColor: "#27500A",
+            accent: "#3B6D11",
+            items: [
+              {
+                p: "d",
+                z: "ㄉ",
+                viet: "đ (đi)",
+                note: "Không bật hơi",
+                type: "Alveolar",
+                ex: "dà 大 — lớn",
+              },
+              {
+                p: "t",
+                z: "ㄊ",
+                viet: "t bật hơi",
+                note: "Bật hơi mạnh",
+                type: "Alveolar",
+                ex: "tā 他 — anh ấy",
+              },
+              {
+                p: "n",
+                z: "ㄋ",
+                viet: "n (na)",
+                note: "Giống tiếng Việt",
+                type: "Alveolar",
+                ex: "nǐ 你 — bạn",
+              },
+              {
+                p: "l",
+                z: "ㄌ",
+                viet: "l (la)",
+                note: "Giống tiếng Việt",
+                type: "Alveolar",
+                ex: "lái 来 — đến",
+              },
+            ],
+          },
+          {
+            label: "Âm mặt lưỡi (Palatal)",
+            color: "#EEEDFE",
+            textColor: "#3C3489",
+            accent: "#534AB7",
+            items: [
+              {
+                p: "j",
+                z: "ㄐ",
+                viet: "gi (gia)",
+                note: "Lưỡi ngạc",
+                type: "Palatal",
+                ex: "jiā 家 — nhà",
+              },
+              {
+                p: "q",
+                z: "ㄑ",
+                viet: "ch bật hơi",
+                note: "Bật hơi",
+                type: "Palatal",
+                ex: "qù 去 — đi",
+              },
+              {
+                p: "x",
+                z: "ㄒ",
+                viet: "s mềm",
+                note: "Ma sát ngạc",
+                type: "Palatal",
+                ex: "xiè 谢 — cảm ơn",
+              },
+            ],
+          },
+          {
+            label: "Âm cuộn lưỡi (Retroflex)",
+            color: "#FAEEDA",
+            textColor: "#633806",
+            accent: "#854F0B",
+            items: [
+              {
+                p: "zh",
+                z: "ㄓ",
+                viet: "tr cuộn lưỡi",
+                note: "Cuộn lưỡi",
+                type: "Retroflex",
+                ex: "zhōng 中 — giữa",
+              },
+              {
+                p: "ch",
+                z: "ㄔ",
+                viet: "tr bật hơi cuộn",
+                note: "Cuộn + bật",
+                type: "Retroflex",
+                ex: "chī 吃 — ăn",
+              },
+              {
+                p: "sh",
+                z: "ㄕ",
+                viet: "s cuộn lưỡi",
+                note: "Cuộn",
+                type: "Retroflex",
+                ex: "shì 是 — là",
+              },
+              {
+                p: "r",
+                z: "ㄖ",
+                viet: "r mềm cuộn",
+                note: "Rung + cuộn",
+                type: "Retroflex",
+                ex: "rén 人 — người",
+              },
+            ],
+          },
+          {
+            label: "Âm cổ họng (Velar)",
+            color: "#FAECE7",
+            textColor: "#712B13",
+            accent: "#993C1D",
+            items: [
+              {
+                p: "g",
+                z: "ㄍ",
+                viet: "g/gh (ga)",
+                note: "Không bật hơi",
+                type: "Velar",
+                ex: "gāo 高 — cao",
+              },
+              {
+                p: "k",
+                z: "ㄎ",
+                viet: "kh (kha)",
+                note: "Bật hơi",
+                type: "Velar",
+                ex: "kāi 开 — mở",
+              },
+              {
+                p: "h",
+                z: "ㄏ",
+                viet: "h (ha) sâu hơn",
+                note: "Cổ họng",
+                type: "Velar",
+                ex: "hǎo 好 — tốt",
+              },
+            ],
+          },
+          {
+            label: "Âm xát (Sibilant)",
+            color: "#FBEAF0",
+            textColor: "#72243E",
+            accent: "#993556",
+            items: [
+              {
+                p: "z",
+                z: "ㄗ",
+                viet: "d không rung",
+                note: "Không rung",
+                type: "Sibilant",
+                ex: "zài 在 — ở",
+              },
+              {
+                p: "c",
+                z: "ㄘ",
+                viet: "ts bật hơi",
+                note: "Bật hơi",
+                type: "Sibilant",
+                ex: "cǎo 草 — cỏ",
+              },
+              {
+                p: "s",
+                z: "ㄙ",
+                viet: "s (sa)",
+                note: "Giống tiếng Việt",
+                type: "Sibilant",
+                ex: "sān 三 — ba",
+              },
+            ],
+          },
+        ],
+        finals: [
+          {
+            label: "Nguyên âm đơn",
+            color: "#E6F1FB",
+            textColor: "#0C447C",
+            accent: "#185FA5",
+            items: [
+              {
+                p: "a",
+                z: "ㄚ",
+                viet: "a",
+                note: "Mở rộng",
+                type: "Đơn",
+                ex: "bā 八 — tám",
+              },
+              {
+                p: "o",
+                z: "ㄛ",
+                viet: "o",
+                note: "Tròn môi",
+                type: "Đơn",
+                ex: "bō 波 — sóng",
+              },
+              {
+                p: "e",
+                z: "ㄜ",
+                viet: "ơ",
+                note: "Giữa miệng",
+                type: "Đơn",
+                ex: "hē 喝 — uống",
+              },
+              {
+                p: "i",
+                z: "ㄧ",
+                viet: "i",
+                note: "Giống tiếng Việt",
+                type: "Đơn",
+                ex: "nǐ 你 — bạn",
+              },
+              {
+                p: "u",
+                z: "ㄨ",
+                viet: "u",
+                note: "Tròn môi",
+                type: "Đơn",
+                ex: "bù 不 — không",
+              },
+              {
+                p: "ü",
+                z: "ㄩ",
+                viet: "ü (Pháp)",
+                note: "Môi tròn + lưỡi i",
+                type: "Đặc biệt",
+                ex: "yǔ 雨 — mưa",
+              },
+            ],
+          },
+          {
+            label: "Vần kép",
+            color: "#EAF3DE",
+            textColor: "#27500A",
+            accent: "#3B6D11",
+            items: [
+              {
+                p: "ai",
+                z: "ㄞ",
+                viet: "ai",
+                note: "Giống tiếng Việt",
+                type: "Kép",
+                ex: "ài 爱 — yêu",
+              },
+              {
+                p: "ei",
+                z: "ㄟ",
+                viet: "ây",
+                note: 'Gần "ây"',
+                type: "Kép",
+                ex: "fēi 飞 — bay",
+              },
+              {
+                p: "ao",
+                z: "ㄠ",
+                viet: "ao",
+                note: "Giống tiếng Việt",
+                type: "Kép",
+                ex: "hǎo 好 — tốt",
+              },
+              {
+                p: "ou",
+                z: "ㄡ",
+                viet: "ôu",
+                note: "Tròn hơn",
+                type: "Kép",
+                ex: "gǒu 狗 — chó",
+              },
+            ],
+          },
+          {
+            label: "Vần mũi",
+            color: "#FAEEDA",
+            textColor: "#633806",
+            accent: "#854F0B",
+            items: [
+              {
+                p: "an",
+                z: "ㄢ",
+                viet: "an",
+                note: "Giống tiếng Việt",
+                type: "Mũi",
+                ex: "fàn 饭 — cơm",
+              },
+              {
+                p: "en",
+                z: "ㄣ",
+                viet: "ân/ưn",
+                note: "Ngắn hơn",
+                type: "Mũi",
+                ex: "wèn 问 — hỏi",
+              },
+              {
+                p: "ang",
+                z: "ㄤ",
+                viet: "ang",
+                note: "Giống tiếng Việt",
+                type: "Mũi",
+                ex: "máng 忙 — bận",
+              },
+              {
+                p: "eng",
+                z: "ㄥ",
+                viet: "ưng/ông",
+                note: "Cổ họng",
+                type: "Mũi",
+                ex: "lěng 冷 — lạnh",
+              },
+              {
+                p: "er",
+                z: "ㄦ",
+                viet: "ơ cuộn lưỡi",
+                note: "Cuộn lưỡi",
+                type: "Đặc biệt",
+                ex: "ér 儿 — con",
+              },
+            ],
+          },
+          {
+            label: "Vần i- (介音 ㄧ)",
+            color: "#EEEDFE",
+            textColor: "#3C3489",
+            accent: "#534AB7",
+            items: [
+              {
+                p: "ia",
+                z: "ㄧㄚ",
+                viet: "ia",
+                note: "i + a",
+                type: "i-",
+                ex: "jiā 家 — nhà",
+              },
+              {
+                p: "ie",
+                z: "ㄧㄝ",
+                viet: "ie",
+                note: "i + e",
+                type: "i-",
+                ex: "xiě 写 — viết",
+              },
+              {
+                p: "iao",
+                z: "ㄧㄠ",
+                viet: "iêu",
+                note: "i + ao",
+                type: "i-",
+                ex: "xiǎo 小 — nhỏ",
+              },
+              {
+                p: "in",
+                z: "ㄧㄣ",
+                viet: "in",
+                note: "Giống tiếng Việt",
+                type: "i-",
+                ex: "xīn 心 — tim",
+              },
+              {
+                p: "ing",
+                z: "ㄧㄥ",
+                viet: "inh",
+                note: "Giống tiếng Việt",
+                type: "i-",
+                ex: "míng 名 — tên",
+              },
+              {
+                p: "ian",
+                z: "ㄧㄢ",
+                viet: "iên",
+                note: "i + an",
+                type: "i-",
+                ex: "tiān 天 — trời",
+              },
+            ],
+          },
+          {
+            label: "Vần u- (介音 ㄨ)",
+            color: "#FAECE7",
+            textColor: "#712B13",
+            accent: "#993C1D",
+            items: [
+              {
+                p: "ua",
+                z: "ㄨㄚ",
+                viet: "oa",
+                note: "u + a",
+                type: "u-",
+                ex: "huā 花 — hoa",
+              },
+              {
+                p: "uo",
+                z: "ㄨㄛ",
+                viet: "uô",
+                note: "u + o",
+                type: "u-",
+                ex: "guó 国 — nước",
+              },
+              {
+                p: "uai",
+                z: "ㄨㄞ",
+                viet: "oai",
+                note: "u + ai",
+                type: "u-",
+                ex: "kuài 快 — nhanh",
+              },
+              {
+                p: "uan",
+                z: "ㄨㄢ",
+                viet: "oan",
+                note: "u + an",
+                type: "u-",
+                ex: "wán 完 — xong",
+              },
+              {
+                p: "uang",
+                z: "ㄨㄤ",
+                viet: "oang",
+                note: "u + ang",
+                type: "u-",
+                ex: "wáng 王 — vua",
+              },
+            ],
+          },
+          {
+            label: "Vần ü- (介音 ㄩ)",
+            color: "#FBEAF0",
+            textColor: "#72243E",
+            accent: "#993556",
+            items: [
+              {
+                p: "üe",
+                z: "ㄩㄝ",
+                viet: "üe",
+                note: "ü + e",
+                type: "ü-",
+                ex: "yuè 月 — trăng",
+              },
+              {
+                p: "üan",
+                z: "ㄩㄢ",
+                viet: "üan",
+                note: "ü + an",
+                type: "ü-",
+                ex: "yuán 元 — đồng",
+              },
+              {
+                p: "ün",
+                z: "ㄩㄣ",
+                viet: "ün",
+                note: "ü + n",
+                type: "ü-",
+                ex: "yún 云 — mây",
+              },
+            ],
+          },
+        ],
+      };
+
+      let selId = null;
+
+      function buildGrid(key, secId) {
+        const sec = document.getElementById(secId);
+        const groups = GROUPS[key];
+        groups.forEach((g) => {
+          const lbl = document.createElement("div");
+          lbl.className = "group-label";
+          lbl.textContent = g.label;
+          sec.appendChild(lbl);
+          const grid = document.createElement("div");
+          grid.className = "grid";
+          g.items.forEach((item, i) => {
+            const id = key + "-" + g.label + "-" + i;
+            const card = document.createElement("div");
+            card.className = "card";
+            card.id = "c-" + id;
+            card.style.background = g.color;
+            card.innerHTML = `<div class="zhuyin" style="color:${g.accent}">${item.z}</div><div class="pinyin" style="color:${g.textColor}">${item.p}</div><div class="type-badge" style="color:${g.accent}">${item.type}</div>`;
+            card.onclick = () => {
+              if (selId) {
+                const prev = document.getElementById("c-" + selId);
+                if (prev) prev.classList.remove("selected");
+              }
+              card.classList.add("selected");
+              selId = id;
+              const panel = document.getElementById("panel");
+              panel.style.background = g.color;
+              panel.style.borderColor = g.accent + "55";
+              panel.innerHTML = `<div class="panel-header"><div class="panel-zh" style="color:${g.accent}">${item.z}</div><div class="panel-py" style="color:${g.textColor}">${item.p}</div></div><div class="panel-rows"><div class="panel-row"><div class="panel-row-label" style="color:${g.accent}">Gần giống tiếng Việt</div><div class="panel-row-val" style="color:${g.textColor}">${item.viet}</div></div><div class="panel-row"><div class="panel-row-label" style="color:${g.accent}">Loại âm</div><div class="panel-row-val" style="color:${g.textColor}">${item.type}</div></div><div class="panel-row"><div class="panel-row-label" style="color:${g.accent}">Ghi chú phát âm</div><div class="panel-row-val" style="color:${g.textColor}">${item.note}</div></div><div class="panel-row"><div class="panel-row-label" style="color:${g.accent}">Ví dụ</div><div class="panel-row-val" style="color:${g.textColor}">${item.ex}</div></div></div>`;
+              panel.classList.add("show");
+              panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            };
+            grid.appendChild(card);
+          });
+          sec.appendChild(grid);
+        });
+      }
+
+      buildGrid("initials", "sec0");
+      buildGrid("finals", "sec1");
+
+      const tabColors = ["#185FA5", "#0F6E56", "#854F0B", "#534AB7"];
+      function showTab(i) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t, j) => t.classList.toggle("active", i === j));
+        ["sec0", "sec1", "sec2", "sec3"].forEach((s, j) =>
+          document.getElementById(s).classList.toggle("active", i === j),
+        );
+        document.getElementById("panel").classList.remove("show");
+      }
+    </script>
+  </body>
+</html>
